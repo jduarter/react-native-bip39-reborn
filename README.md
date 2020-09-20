@@ -119,7 +119,7 @@ bip39.validateMnemonic('basket actual')
 
 
 ``` js
-const bip39 = require('bip39')
+const bip39 = require('react-native-bip39-reborn')
 
 // defaults to BIP39 English word list
 // uses HEX strings for entropy
