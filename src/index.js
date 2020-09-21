@@ -20,7 +20,10 @@ const WORDLIST_REQUIRED =
 function pbkdf2Promise(password, saltMixin, iterations, keylen, digest) {
   return new Promise((resolve, reject) => {
     try {
-      pbkdf2_1(password, saltMixin, iterations, keylen, digest, res => {
+      pbkdf2_1(password, saltMixin, iterations, keylen, digest, (err, res) => {
+        if (err) {
+          return reject(err);
+        }
         console.log('RES: ', { res });
         resolve(res);
       });
