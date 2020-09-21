@@ -66,13 +66,7 @@ function mnemonicToSeed(mnemonic, password) {
   return Promise.resolve().then(() => {
     const mnemonicBuffer = Buffer.from(normalize(mnemonic), 'utf8');
     const saltBuffer = Buffer.from(salt(normalize(password)), 'utf8');
-    return pbkdf2Promise(
-      mnemonicBuffer.toString(),
-      saltBuffer.toString(),
-      2048,
-      64,
-      'sha512',
-    );
+    return pbkdf2Promise(mnemonicBuffer, saltBuffer, 2048, 64, 'sha512');
   });
 }
 exports.mnemonicToSeed = mnemonicToSeed;

@@ -1,6 +1,6 @@
 {
   "name": "@react-native-cryptocurrencies/bip39",
-  "version": "3.0.11",
+  "version": "3.0.12",
   "private": false,
   "description": "Bitcoin BIP39: Mnemonic code for generating deterministic keys port for React Native.",
   "main": "src/index.js",
@@ -38,7 +38,7 @@
     "types"
   ],
   "dependencies": {
-    "@react-native-cryptocurrencies/pbkdf2": "^1.0.5",
+    "@react-native-cryptocurrencies/pbkdf2": "^1.0.6",
     "create-hash": "^1.1.0",
     "pbkdf2": "^3.0.9",
     "randombytes": "^2.0.1",
