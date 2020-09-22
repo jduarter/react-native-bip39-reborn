@@ -25,9 +25,11 @@ function pbkdf2Promise(password, saltMixin, iterations, keylen, digest) {
     iterations,
   );
 }
-+function normalize(str) {
+
+function normalize(str) {
   return (str || '').normalize('NFKD');
-};
+}
+
 function lpad(str, padString, length) {
   while (str.length < length) {
     str = padString + str;
