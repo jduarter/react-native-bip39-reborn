@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 //const pbkdf2_1 = require("pbkdf2");
 const Buffer = require('buffer').Buffer;
 const RNSimpleCrypto = require('react-native-simple-crypto').default;
-const pbkdf2_1 = require('@react-native-cryptocurrencies/pbkdf2').pbkdf2; //RNSimpleCrypto.PBKDF2;
+const pbkdf2_1 = require('react-native-pbkdf2').default; //RNSimpleCrypto.PBKDF2;
 const sha = RNSimpleCrypto.SHA;
 
 //const randomBytes = require('randombytes');
@@ -17,25 +17,17 @@ const INVALID_CHECKSUM = 'Invalid mnemonic checksum';
 const WORDLIST_REQUIRED =
   'A wordlist is required but a default could not be found.\n' +
   'Please explicitly pass a 2048 word array explicitly.';
+
 function pbkdf2Promise(password, saltMixin, iterations, keylen, digest) {
-  return new Promise((resolve, reject) => {
-    try {
-      pbkdf2_1(password, saltMixin, iterations, keylen, digest, (err, res) => {
-        if (err) {
-          return reject(err);
-        }
-        console.log('RES: ', { res });
-        resolve(res);
-      });
-    } catch (err) {
-      reject(err);
-    }
-  });
-  return;
+  return pbkdf2_1.derivationKey(
+    password.toString(),
+    saltMixin.toString(),
+    iterations,
+  );
 }
-function normalize(str) {
++function normalize(str) {
   return (str || '').normalize('NFKD');
-}
+};
 function lpad(str, padString, length) {
   while (str.length < length) {
     str = padString + str;
