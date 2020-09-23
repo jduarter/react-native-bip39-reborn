@@ -1,6 +1,6 @@
 {
   "name": "@react-native-cryptocurrencies/bip39",
-  "version": "3.0.17",
+  "version": "3.0.19",
   "private": false,
   "description": "Bitcoin BIP39: Mnemonic code for generating deterministic keys port for React Native.",
   "main": "src/index.js",

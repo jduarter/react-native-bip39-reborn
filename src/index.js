@@ -19,6 +19,15 @@ const WORDLIST_REQUIRED =
   'Please explicitly pass a 2048 word array explicitly.';
 
 function pbkdf2Promise(password, saltMixin, iterations, keylen, digest) {
+  console.log('[BIP39] run PBKDF2 with: ', {
+    password,
+    password_str: password.toString(),
+    password_hex: password.toString('hex'),
+    saltMixin,
+    salt_str: saltMixin.toString(),
+    salt_hex: saltMixin.toString('hex'),
+    iterations,
+  });
   return pbkdf2_1.derivationKey(
     password.toString(),
     saltMixin.toString(),
@@ -45,9 +54,27 @@ function bytesToBinary(bytes) {
 async function deriveChecksumBits(entropyBuffer) {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
-  const hash = await sha.sha256(entropyBuffer);
-  return bytesToBinary(Array.from(hash)).slice(0, CS);
+  console.log(
+    'deriveChecksumBits: ',
+    { ENT, CS },
+    entropyBuffer,
+    entropyBuffer.toString('hex'),
+  );
+  const inputForHash = entropyBuffer.toString('hex');
+  console.log('deriveChecksumBits: input for Hash: ', { inputForHash });
+  const hash = await sha.sha256(inputForHash);
+  console.log('hash: ', { hash });
+  console.log(
+    'normalizedHash:',
+    Array.from(typeof hash === 'string' ? Buffer.from(hash, 'hex') : hash),
+  );
+  const result = bytesToBinary(
+    Array.from(typeof hash === 'string' ? Buffer.from(hash, 'hex') : hash),
+  ).slice(0, CS);
+  console.log({ result });
+  return result;
 }
+
 function salt(password) {
   return 'mnemonic' + (password || '');
 }
