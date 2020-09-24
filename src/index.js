@@ -19,15 +19,7 @@ const WORDLIST_REQUIRED =
   'Please explicitly pass a 2048 word array explicitly.';
 
 function pbkdf2Promise(password, saltMixin, iterations, keylen, digest) {
-  console.log('[BIP39] run PBKDF2 with: ', {
-    password,
-    password_str: password.toString(),
-    password_hex: password.toString('hex'),
-    saltMixin,
-    salt_str: saltMixin.toString(),
-    salt_hex: saltMixin.toString('hex'),
-    iterations,
-  });
+  // console.log('[BIP39] run PBKDF2 with: ',{password,password_str:password.toString(),password_hex:password.toString('hex'),saltMixin,salt_str:saltMixin.toString(),salt_hex:saltMixin.toString('hex'),iterations});
   return pbkdf2_1.derivationKey(
     password.toString(),
     saltMixin.toString(),
@@ -60,21 +52,15 @@ async function deriveChecksumBits(entropyBuffer) {
     entropyBuffer,
     entropyBuffer.toString('hex'),
   );
-  const inputForHash = entropyBuffer.toString('hex');
-  console.log('deriveChecksumBits: input for Hash: ', { inputForHash });
-  const hash = await sha.sha256(inputForHash);
+  const hash = await sha.sha256(entropyBuffer);
   console.log('hash: ', { hash });
-  console.log(
-    'normalizedHash:',
-    Array.from(typeof hash === 'string' ? Buffer.from(hash, 'hex') : hash),
-  );
+  // console.log('normalizedHash:',Array.from(typeof hash === 'string' ? Buffer.from(hash,'hex') : hash));
   const result = bytesToBinary(
     Array.from(typeof hash === 'string' ? Buffer.from(hash, 'hex') : hash),
   ).slice(0, CS);
   console.log({ result });
   return result;
 }
-
 function salt(password) {
   return 'mnemonic' + (password || '');
 }
@@ -156,10 +142,14 @@ async function entropyToMnemonic(entropy, wordlist) {
   }
   const entropyBits = bytesToBinary(Array.from(entropy));
   const checksumBits = await deriveChecksumBits(entropy);
+  console.log('entropyToMnemonic: ', { entropyBits, checksumBits });
   const bits = entropyBits + checksumBits;
+  console.log({ bits });
   const chunks = bits.match(/(.{1,11})/g);
+  console.log({ chunks });
   const words = chunks.map(binary => {
     const index = binaryToByte(binary);
+    // console.log('* index for word is: ',index);
     return wordlist[index];
   });
   return wordlist[0] === '\u3042\u3044\u3053\u304f\u3057\u3093' // Japanese wordlist
@@ -176,15 +166,17 @@ async function generateMnemonic(strength, rng, wordlist) {
   return entropyToMnemonic(await rng(strength / 8), wordlist);
 }
 exports.generateMnemonic = generateMnemonic;
-function validateMnemonic(mnemonic, wordlist) {
+async function validateMnemonic_Async(mnemonic, wordlist) {
   try {
-    mnemonicToEntropy(mnemonic, wordlist);
+    const entropy = await mnemonicToEntropy(mnemonic, wordlist);
+    console.log('VALIDATE MNEMONIC ENTROPY IS: ', entropy);
   } catch (e) {
+    console.log('VALIDATE MNEMONIC ERROR!!!', e);
     return false;
   }
   return true;
 }
-exports.validateMnemonic = validateMnemonic;
+exports.validateMnemonic_Async = validateMnemonic_Async;
 function setDefaultWordlist(language) {
   const result = _wordlists_1.wordlists[language];
   if (result) {
