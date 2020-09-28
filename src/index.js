@@ -46,14 +46,15 @@ function bytesToBinary(bytes) {
 async function deriveChecksumBits(entropyBuffer) {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
-  console.log(
+  /*console.log(
     'deriveChecksumBits: ',
     { ENT, CS },
     entropyBuffer,
     entropyBuffer.toString('hex'),
-  );
-  const hash = await sha.sha256(entropyBuffer);
-  console.log('hash: ', { hash });
+  );*/
+
+  const hash = await sha.sha256(entropyBuffer.toString('utf-8'));
+
   // console.log('normalizedHash:',Array.from(typeof hash === 'string' ? Buffer.from(hash,'hex') : hash));
   const result = bytesToBinary(
     Array.from(typeof hash === 'string' ? Buffer.from(hash, 'hex') : hash),
@@ -116,6 +117,7 @@ async function mnemonicToEntropy(mnemonic, wordlist) {
   }
   const entropy = Buffer.from(entropyBytes);
   const newChecksum = await deriveChecksumBits(entropy);
+  console.log({ newChecksum, checksumBits });
   if (newChecksum !== checksumBits) {
     throw new Error(INVALID_CHECKSUM);
   }
