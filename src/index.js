@@ -19,7 +19,7 @@ const WORDLIST_REQUIRED =
   'Please explicitly pass a 2048 word array explicitly.';
 
 function pbkdf2Promise(password, saltMixin, iterations, keylen, digest) {
-  // console.log('[BIP39] run PBKDF2 with: ',{password,password_str:password.toString(),password_hex:password.toString('hex'),saltMixin,salt_str:saltMixin.toString(),salt_hex:saltMixin.toString('hex'),iterations});
+  console.log('[BIP39] run PBKDF2 with: ',{password,password_str:password.toString(),password_hex:password.toString('hex'),saltMixin,salt_str:saltMixin.toString(),salt_hex:saltMixin.toString('hex'),iterations});
   return pbkdf2_1.derivationKey(
     password.toString(),
     saltMixin.toString(),
@@ -46,16 +46,16 @@ function bytesToBinary(bytes) {
 async function deriveChecksumBits(entropyBuffer) {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
-  /*console.log(
+  console.log(
     'deriveChecksumBits: ',
     { ENT, CS },
     entropyBuffer,
     entropyBuffer.toString('hex'),
-  );*/
+  );
 
-  const hash = await sha.sha256(entropyBuffer.toString('utf-8'));
+  const hash = await sha.sha256(entropyBuffer/*.toString('utf-8')*/);
 
-  // console.log('normalizedHash:',Array.from(typeof hash === 'string' ? Buffer.from(hash,'hex') : hash));
+   console.log('normalizedHash:',Array.from(typeof hash === 'string' ? Buffer.from(hash,'hex') : hash));
   const result = bytesToBinary(
     Array.from(typeof hash === 'string' ? Buffer.from(hash, 'hex') : hash),
   ).slice(0, CS);
@@ -76,7 +76,7 @@ exports.mnemonicToSeedSync = mnemonicToSeedSync;
 function mnemonicToSeed(mnemonic, password) {
   return Promise.resolve().then(() => {
     const mnemonicBuffer = Buffer.from(normalize(mnemonic), 'utf8');
-    const saltBuffer = Buffer.from(salt(normalize(password)), 'utf8');
+    const saltBuffer = Buffer.from(normalize(salt(password)), 'utf8');
     return pbkdf2Promise(mnemonicBuffer, saltBuffer, 2048, 64, 'sha512');
   });
 }
@@ -151,7 +151,7 @@ async function entropyToMnemonic(entropy, wordlist) {
   console.log({ chunks });
   const words = chunks.map(binary => {
     const index = binaryToByte(binary);
-    // console.log('* index for word is: ',index);
+    console.log('* index for word ('+binary+') is: ',index);
     return wordlist[index];
   });
   return wordlist[0] === '\u3042\u3044\u3053\u304f\u3057\u3093' // Japanese wordlist
