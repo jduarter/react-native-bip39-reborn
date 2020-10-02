@@ -6,12 +6,12 @@ var base64js = require('base64-js');
 const Buffer = require('buffer').Buffer;
 const RNSimpleCrypto = require('@react-native-cryptocurrencies/react-native-simple-crypto')
   .default;
-const pbkdf2_1 = require('react-native-pbkdf2').default; //RNSimpleCrypto.PBKDF2;
+const pbkdf2_1 = require('react-native-pbkdf2').default;
 const sha = RNSimpleCrypto.SHA;
 
-//const randomBytes = require('randombytes');
 const randomBytes = require('react-native-securerandom').generateSecureRandom;
 const _wordlists_1 = require('./_wordlists');
+
 let DEFAULT_WORDLIST = _wordlists_1._default;
 const INVALID_MNEMONIC = 'Invalid mnemonic';
 const INVALID_ENTROPY = 'Invalid entropy';
@@ -21,6 +21,7 @@ const WORDLIST_REQUIRED =
   'Please explicitly pass a 2048 word array explicitly.';
 
 function pbkdf2Promise(password, saltMixin, iterations, keylen, digest) {
+  /*
   console.log('[BIP39] run PBKDF2 with: ', {
     password,
     password_str: password.toString(),
@@ -30,6 +31,7 @@ function pbkdf2Promise(password, saltMixin, iterations, keylen, digest) {
     salt_hex: saltMixin.toString('hex'),
     iterations,
   });
+  */
   return pbkdf2_1.derivationKey(
     password.toString(),
     saltMixin.toString(),
@@ -53,12 +55,13 @@ function binaryToByte(bin) {
 function bytesToBinary(bytes) {
   const binaryParts = [];
   bytes.forEach(x => {
-    console.log(
+    /* console.log(
       'bytesToBinary, processing: ',
       x,
       x.toString(2),
       lpad(x.toString(2), '0', 8),
     );
+    */
     binaryParts.push(lpad(x.toString(2), '0', 8));
   });
   console.log({ binaryParts });
@@ -68,60 +71,49 @@ function bytesToBinary(bytes) {
 async function deriveChecksumBits(entropyBuffer) {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
+  /*
   console.log(
     'deriveChecksumBits: ',
     { ENT, CS },
     entropyBuffer,
     entropyBuffer.toString('hex'),
   );
+  */
 
   const entropyBuffer_u8 = Uint8Array.from(entropyBuffer);
   const entropyBuffer_u8_b64 = base64js.fromByteArray(entropyBuffer_u8);
 
-  /*
-const b=entropyBuffer;
-const inTest = typeof jest !== 'undefined';
-const firstAttemptHash = await sha.sha256(Uint8Array.from(entropyBuffer));
-const firstAttemptSucceeded = !(typeof firstAttemptHash === 'object' && !firstAttemptHash.length); // non empty hash
-
-console.log(RNSimpleCrypto.SHA_b64.sha256);
-const secondAttemptHash = Buffer.from(await RNSimpleCrypto.SHA_b64.sha256(xxxy),'base64').toString('hex');//decodeUtf8(Uint8Array.from(entropyBuffer)));
-console.log({firstAttemptHash, secondAttemptHash});
-const hash = firstAttemptSucceeded ? firstAttemptHash : secondAttemptHash;
-console.log({hash});
-*/
+  /* RNSimpleCrypto doesnt seem to be properly handling ArrayBuffers & Uint8Arrays */
   const hash = Buffer.from(
     await RNSimpleCrypto.SHA_b64.sha256(entropyBuffer_u8_b64),
     'base64',
   ).toString('hex');
-  //  const hash = await sha.sha256(entropyBuffer.toString('utf-8')); // inTest ? entropyBuffer : entropyBuffer.toString('utf-8'));
+
   const normalizedHash =
     typeof hash === 'string' ? Buffer.from(hash, 'hex') : hash;
+
   const normalizedHashByteArray = Uint8Array
     ? Uint8Array.from(normalizedHash)
     : Array.from(normalizedHash);
+
+  /*
   console.log(
     'normalizedHash:',
     hash,
     { normalizedHash },
     { normalizedHashByteArray },
   );
+  */
   const inBinary = bytesToBinary(normalizedHashByteArray);
   const result = inBinary.slice(0, CS);
   console.log({ result });
   return result;
 }
+
 function salt(password) {
   return 'mnemonic' + (password || '');
 }
-/*
-function mnemonicToSeedSync(mnemonic, password) {
-  const mnemonicBuffer = Buffer.from(normalize(mnemonic), 'utf8');
-  const saltBuffer = Buffer.from(salt(normalize(password)), 'utf8');
-  return pbkdf2_1.hash(mnemonicBuffer, saltBuffer, 2048, 64, 'sha512');
-}
-exports.mnemonicToSeedSync = mnemonicToSeedSync;
-*/
+
 function mnemonicToSeed(mnemonic, password) {
   return Promise.resolve().then(() => {
     const mnemonicBuffer = Buffer.from(normalize(mnemonic), 'utf8');
@@ -129,6 +121,7 @@ function mnemonicToSeed(mnemonic, password) {
     return pbkdf2Promise(mnemonicBuffer, saltBuffer, 2048, 64, 'sha512');
   });
 }
+
 exports.mnemonicToSeed = mnemonicToSeed;
 async function mnemonicToEntropy(mnemonic, wordlist) {
   wordlist = wordlist || DEFAULT_WORDLIST;
@@ -173,6 +166,7 @@ async function mnemonicToEntropy(mnemonic, wordlist) {
   return entropy.toString('hex');
 }
 exports.mnemonicToEntropy = mnemonicToEntropy;
+
 async function entropyToMnemonic(entropy, wordlist) {
   if (!Buffer.isBuffer(entropy)) {
     entropy = Buffer.from(entropy, 'hex');
@@ -208,6 +202,7 @@ async function entropyToMnemonic(entropy, wordlist) {
     : words.join(' ');
 }
 exports.entropyToMnemonic = entropyToMnemonic;
+
 async function generateMnemonic(strength, rng, wordlist) {
   strength = strength || 128;
   if (strength % 32 !== 0) {
@@ -217,17 +212,19 @@ async function generateMnemonic(strength, rng, wordlist) {
   return entropyToMnemonic(await rng(strength / 8), wordlist);
 }
 exports.generateMnemonic = generateMnemonic;
+
 async function validateMnemonic_Async(mnemonic, wordlist) {
   try {
     const entropy = await mnemonicToEntropy(mnemonic, wordlist);
-    console.log('VALIDATE MNEMONIC ENTROPY IS: ', entropy);
+    // console.log('VALIDATE MNEMONIC ENTROPY IS: ', entropy);
   } catch (e) {
-    console.log('VALIDATE MNEMONIC ERROR!!!', e);
+    // console.log('VALIDATE MNEMONIC ERROR!!!', e);
     return false;
   }
   return true;
 }
 exports.validateMnemonic_Async = validateMnemonic_Async;
+
 function setDefaultWordlist(language) {
   const result = _wordlists_1.wordlists[language];
   if (result) {
@@ -237,6 +234,7 @@ function setDefaultWordlist(language) {
   }
 }
 exports.setDefaultWordlist = setDefaultWordlist;
+
 function getDefaultWordlist() {
   if (!DEFAULT_WORDLIST) {
     throw new Error('No Default Wordlist set');
@@ -251,5 +249,6 @@ function getDefaultWordlist() {
   })[0];
 }
 exports.getDefaultWordlist = getDefaultWordlist;
+
 var _wordlists_2 = require('./_wordlists');
 exports.wordlists = _wordlists_2.wordlists;
