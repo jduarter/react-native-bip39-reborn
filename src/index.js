@@ -1,9 +1,11 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-//const createHash = require('create-hash');
-//const pbkdf2_1 = require("pbkdf2");
+const utf8 = require('utf8');
+var base64js = require('base64-js');
+
 const Buffer = require('buffer').Buffer;
-const RNSimpleCrypto = require('react-native-simple-crypto').default;
+const RNSimpleCrypto = require('@react-native-cryptocurrencies/react-native-simple-crypto')
+  .default;
 const pbkdf2_1 = require('react-native-pbkdf2').default; //RNSimpleCrypto.PBKDF2;
 const sha = RNSimpleCrypto.SHA;
 
@@ -19,7 +21,15 @@ const WORDLIST_REQUIRED =
   'Please explicitly pass a 2048 word array explicitly.';
 
 function pbkdf2Promise(password, saltMixin, iterations, keylen, digest) {
-  console.log('[BIP39] run PBKDF2 with: ',{password,password_str:password.toString(),password_hex:password.toString('hex'),saltMixin,salt_str:saltMixin.toString(),salt_hex:saltMixin.toString('hex'),iterations});
+  console.log('[BIP39] run PBKDF2 with: ', {
+    password,
+    password_str: password.toString(),
+    password_hex: password.toString('hex'),
+    saltMixin,
+    salt_str: saltMixin.toString(),
+    salt_hex: saltMixin.toString('hex'),
+    iterations,
+  });
   return pbkdf2_1.derivationKey(
     password.toString(),
     saltMixin.toString(),
@@ -41,8 +51,20 @@ function binaryToByte(bin) {
   return parseInt(bin, 2);
 }
 function bytesToBinary(bytes) {
-  return bytes.map(x => lpad(x.toString(2), '0', 8)).join('');
+  const binaryParts = [];
+  bytes.forEach(x => {
+    console.log(
+      'bytesToBinary, processing: ',
+      x,
+      x.toString(2),
+      lpad(x.toString(2), '0', 8),
+    );
+    binaryParts.push(lpad(x.toString(2), '0', 8));
+  });
+  console.log({ binaryParts });
+  return binaryParts.join('');
 }
+
 async function deriveChecksumBits(entropyBuffer) {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
@@ -53,12 +75,39 @@ async function deriveChecksumBits(entropyBuffer) {
     entropyBuffer.toString('hex'),
   );
 
-  const hash = await sha.sha256(entropyBuffer/*.toString('utf-8')*/);
+  const entropyBuffer_u8 = Uint8Array.from(entropyBuffer);
+  const entropyBuffer_u8_b64 = base64js.fromByteArray(entropyBuffer_u8);
 
-   console.log('normalizedHash:',Array.from(typeof hash === 'string' ? Buffer.from(hash,'hex') : hash));
-  const result = bytesToBinary(
-    Array.from(typeof hash === 'string' ? Buffer.from(hash, 'hex') : hash),
-  ).slice(0, CS);
+  /*
+const b=entropyBuffer;
+const inTest = typeof jest !== 'undefined';
+const firstAttemptHash = await sha.sha256(Uint8Array.from(entropyBuffer));
+const firstAttemptSucceeded = !(typeof firstAttemptHash === 'object' && !firstAttemptHash.length); // non empty hash
+
+console.log(RNSimpleCrypto.SHA_b64.sha256);
+const secondAttemptHash = Buffer.from(await RNSimpleCrypto.SHA_b64.sha256(xxxy),'base64').toString('hex');//decodeUtf8(Uint8Array.from(entropyBuffer)));
+console.log({firstAttemptHash, secondAttemptHash});
+const hash = firstAttemptSucceeded ? firstAttemptHash : secondAttemptHash;
+console.log({hash});
+*/
+  const hash = Buffer.from(
+    await RNSimpleCrypto.SHA_b64.sha256(entropyBuffer_u8_b64),
+    'base64',
+  ).toString('hex');
+  //  const hash = await sha.sha256(entropyBuffer.toString('utf-8')); // inTest ? entropyBuffer : entropyBuffer.toString('utf-8'));
+  const normalizedHash =
+    typeof hash === 'string' ? Buffer.from(hash, 'hex') : hash;
+  const normalizedHashByteArray = Uint8Array
+    ? Uint8Array.from(normalizedHash)
+    : Array.from(normalizedHash);
+  console.log(
+    'normalizedHash:',
+    hash,
+    { normalizedHash },
+    { normalizedHashByteArray },
+  );
+  const inBinary = bytesToBinary(normalizedHashByteArray);
+  const result = inBinary.slice(0, CS);
   console.log({ result });
   return result;
 }
@@ -151,7 +200,7 @@ async function entropyToMnemonic(entropy, wordlist) {
   console.log({ chunks });
   const words = chunks.map(binary => {
     const index = binaryToByte(binary);
-    console.log('* index for word ('+binary+') is: ',index);
+    console.log('* index for word (' + binary + ') is: ', index);
     return wordlist[index];
   });
   return wordlist[0] === '\u3042\u3044\u3053\u304f\u3057\u3093' // Japanese wordlist
