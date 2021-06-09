@@ -1,3 +1,13 @@
+This is a Fork of bip39 but using React Native PBKDF2 as key-derivation function to ensure proper performance and better security.
+
+Tests are broken. This is not suitable for production use.
+
+*DISCLAIMER: This is a partial release extremely experimental (as a result of modifying some existing modules to make them work for a customer) and it's definitively not suitable for production usage unless the incorporated code is throughly checked with testing. I will try to revamp these libraries fully adapted for RN ready for production as soon as I have time. This is only the result of experimeting and coding for an external customer to solve a specific issue with a very specific setup.*
+
+## original README:
+
+
+
 # BIP39
 
 [![Build Status](https://travis-ci.org/bitcoinjs/bip39.png?branch=master)](https://travis-ci.org/bitcoinjs/bip39)
